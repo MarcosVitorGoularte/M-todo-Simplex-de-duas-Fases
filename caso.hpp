@@ -19,7 +19,7 @@ private:
     long restricoes;
     Sentido sentido;
     std::vector<double> coeficientesFuncaoObjetivo;
-    std::vector<double> matriz;          // matriz m x n, por linhas: A[i * n + j]
+    std::vector<double> matriz;
     std::vector<Operador> operadores;
     std::vector<double> ladosDireitos;
 public:
