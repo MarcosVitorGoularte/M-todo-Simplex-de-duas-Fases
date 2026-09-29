@@ -7,6 +7,8 @@ class PreProcessamento
 private:
 public:
     static void verificarDireitaNegativa(Caso& caso);
+    static void criarVariaveisAuxiliares(Caso& caso);
+    static void ajustarSentido(Caso& caso);
 
 
 };

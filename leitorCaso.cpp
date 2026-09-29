@@ -21,7 +21,7 @@ bool LeitorCaso::interpretaOperador(const std::string& lerOperador, Operador& op
         operador = MENOR_IGUAL;
         return true;
     }
-    if(lerOperador == "=="){
+    if(lerOperador == "="){
         operador = IGUAL;
         return true;
     }
@@ -54,6 +54,7 @@ bool LeitorCaso::lerCaso(std::istream& in, Caso& caso){
 
     std::vector<double> coeficientesFuncaoObjetivo, ladosDireitos, matriz;
     std::vector<Operador> operadores;
+    std::vector<std::string> nomesVariaveisOrdem;
 
     for(unsigned long j = 0; j < n; ++j){
         double coeficiente;
@@ -62,6 +63,7 @@ bool LeitorCaso::lerCaso(std::istream& in, Caso& caso){
             return false;
         }
         coeficientesFuncaoObjetivo.push_back(coeficiente);
+        nomesVariaveisOrdem.push_back("x" + std::to_string(j+1));
     }
 
     for(unsigned long i = 0; i < m; ++i){
@@ -90,6 +92,6 @@ bool LeitorCaso::lerCaso(std::istream& in, Caso& caso){
         }
         ladosDireitos.push_back(ladoDireito);
     }
-    caso = Caso(n, m, sentido, coeficientesFuncaoObjetivo, matriz, operadores, ladosDireitos);
+    caso = Caso(n, m, sentido, coeficientesFuncaoObjetivo, matriz, operadores, ladosDireitos, nomesVariaveisOrdem);
     return true;
 }
