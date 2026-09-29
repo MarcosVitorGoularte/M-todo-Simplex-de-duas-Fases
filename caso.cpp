@@ -1,35 +1,58 @@
 #include "caso.hpp"
 #include <iostream>
 
-Caso::Caso(unsigned long variaveisDecisao, long restricoes, Sentido sentido, std::vector<double>& coeficientesFuncaoObjetivo, 
-        std::vector<double>& matriz, std::vector<Operador>& operadores, std::vector<double>& ladosDireitos)
+Caso::Caso(long variaveisDecisao,long restricoes, Sentido sentido, const std::vector<double>& coeficientesFuncaoObjetivo, 
+        const std::vector<double>& matriz,const std::vector<Operador>& operadores,const std::vector<double>& ladosDireitos)
         : variaveisDecisao(variaveisDecisao), restricoes(restricoes), sentido(sentido), coeficientesFuncaoObjetivo(coeficientesFuncaoObjetivo),
           matriz(matriz), operadores(operadores), ladosDireitos(ladosDireitos){}
 
-unsigned long Caso::getVariaveisDecisao() {
+long Caso::getVariaveisDecisao() const {
     return variaveisDecisao;
 }
 
-long Caso::getRestricoes() {
+long Caso::getRestricoes() const {
     return restricoes;
 }
 
-Sentido Caso::getSentido() {
+Sentido Caso::getSentido() const {
     return sentido;
 }
 
-std::vector<double>& Caso::getCoeficientesFuncaoObjetivo() {
+const std::vector<double>& Caso::getCoeficientesFuncaoObjetivo() const{
     return coeficientesFuncaoObjetivo;
 }
 
-std::vector<double>& Caso::getMatriz() {
+const std::vector<double>& Caso::getMatriz() const{
     return matriz;
 }
 
-std::vector<Operador>& Caso::getOperadores() {
+const std::vector<Operador>& Caso::getOperadores()const{
     return operadores;
 }
 
-std::vector<double>& Caso::getladosDireitos() {
+const std::vector<double>& Caso::getLadosDireitos()const {
     return ladosDireitos;
+}
+
+void Caso::setVariaveisDecisao(long variaveisDecisao){
+    this->variaveisDecisao = variaveisDecisao;
+}
+void Caso::setRestricoes(long restricoes){
+    this->restricoes = restricoes;
+}
+void Caso::setSentido(Sentido sentido){
+    this->sentido = sentido;
+}
+
+void Caso::setCoeficientesFuncaoObjetivo(const std::vector<double>& coeficientesFuncaoObjetivo){
+    this->coeficientesFuncaoObjetivo = coeficientesFuncaoObjetivo;
+}
+void Caso::setMatriz(const std::vector<double>& matriz){
+    this->matriz = matriz;
+}
+void Caso::setOperadores(const std::vector<Operador>& operadores){
+    this->operadores = operadores;
+}
+void Caso::setLadosDireitos(const std::vector<double>& ladosDireitos){
+    this->ladosDireitos = ladosDireitos;
 }
