@@ -34,8 +34,8 @@ bool LeitorCaso::interpretaOperador(const std::string& lerOperador, Operador& op
 
 
 bool LeitorCaso::lerCaso(std::istream& in, Caso& caso){
-    long n;
-    long m;
+    int n;
+    int m;
 
     if(!(in >> n >> m)){
         std::cerr << "Erro em ler as variaveis ou restricoes\n";
@@ -55,8 +55,9 @@ bool LeitorCaso::lerCaso(std::istream& in, Caso& caso){
     std::vector<double> coeficientesFuncaoObjetivo, ladosDireitos, matriz;
     std::vector<Operador> operadores;
     std::vector<std::string> nomesVariaveisOrdem;
+    std::vector<TipoVariavel> tiposVariaveis;
 
-    for(unsigned long j = 0; j < n; ++j){
+    for(int j = 0; j < n; ++j){
         double coeficiente;
         if(!(in >> coeficiente)){
             std::cerr << "Erro na leitura do coeficiente["<<j<<"] da funcao objetivo\n";
@@ -64,10 +65,11 @@ bool LeitorCaso::lerCaso(std::istream& in, Caso& caso){
         }
         coeficientesFuncaoObjetivo.push_back(coeficiente);
         nomesVariaveisOrdem.push_back("x" + std::to_string(j+1));
+        tiposVariaveis.push_back(DECISAO);
     }
 
-    for(unsigned long i = 0; i < m; ++i){
-        for(unsigned long j = 0; j < n; j++){
+    for(int i = 0; i < m; ++i){
+        for(int j = 0; j < n; j++){
             double coeficienteRestricao;
             if(!(in >> coeficienteRestricao)){
                 std::cerr << "Erro ao ler A[" << i <<"][" << j << "]\n";
@@ -76,7 +78,6 @@ bool LeitorCaso::lerCaso(std::istream& in, Caso& caso){
             matriz.push_back(coeficienteRestricao);
         }
     
-
         Operador operador;
         std::string lerOperador;
         if(!(in >> lerOperador) || !interpretaOperador(lerOperador, operador)){
@@ -92,6 +93,6 @@ bool LeitorCaso::lerCaso(std::istream& in, Caso& caso){
         }
         ladosDireitos.push_back(ladoDireito);
     }
-    caso = Caso(n, m, sentido, coeficientesFuncaoObjetivo, matriz, operadores, ladosDireitos, nomesVariaveisOrdem);
+    caso = Caso(n, m, sentido, coeficientesFuncaoObjetivo, matriz, operadores, ladosDireitos, nomesVariaveisOrdem, tiposVariaveis);
     return true;
 }
