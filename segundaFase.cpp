@@ -2,6 +2,7 @@
 #include "caso.hpp"
 #include <vector>
 #include <iostream>
+#include <string>
 
 void SegundaFase::montarLinhaZFase2(Caso& caso){
     int variaveisDecisao = caso.getVariaveisDecisao();
@@ -86,20 +87,31 @@ StatusFinalSegundaFase SegundaFase::pivoteamento(Caso& caso){
     while(true){
         int colunaEscolhida = escolherVariavelEntraFase2(caso);
         if(colunaEscolhida == -1){
+            if(caso.getModoImpressao()){
+                std::cout << "Fase 2 concluida: nenhuma coluna com custo reduzido negativo (tabela otima)\n\n";
+            }
             resultado.status = OTIMA;
             break;
         }
 
         int linhaEscolhida = escolherVariavelSaiFase2(caso, colunaEscolhida);
         if(linhaEscolhida == -1){
+            if(caso.getModoImpressao()){
+                std::cout << "Entra: " << caso.getNomesVariaveisOrdem()[colunaEscolhida]
+                          << " | nenhuma linha com coeficiente > 0 na coluna: problema ILIMITADO\n\n";
+            }
             resultado.status = ILIMITADA;
             break;
         }
 
         if(contadorIteracoes >= limiteIteracoes){
-            std::cerr << "Limite de iteracoes da primeira fase atingido. Erro de implementacao ou ciclagem\n";
+            std::cerr << "Limite de iteracoes da segunda fase atingido. Erro de implementacao ou ciclagem\n";
             resultado.status = LIMITE_ITERACOES;
             break;
+        }
+
+        if(caso.getModoImpressao()){
+            caso.imprimirPivo(linhaEscolhida, colunaEscolhida);
         }
 
         int inicioLinhaPivo = linhaEscolhida * totalColunas;
@@ -120,6 +132,9 @@ StatusFinalSegundaFase SegundaFase::pivoteamento(Caso& caso){
         }
         base[linhaEscolhida] = colunaEscolhida;
         ++contadorIteracoes;
+        if(caso.getModoImpressao()){
+            caso.imprimirEstadoAtual("Tableau apos iteracao " + std::to_string(contadorIteracoes) + " (Fase 2)");
+        }
     }
 
     resultado.iteracoes = contadorIteracoes;
@@ -129,5 +144,9 @@ StatusFinalSegundaFase SegundaFase::pivoteamento(Caso& caso){
 StatusFinalSegundaFase SegundaFase::executarSegundaFase(Caso& caso){
     montarLinhaZFase2(caso);
     canonicalizarLinhaZ(caso);
+    if(caso.getModoImpressao()){
+        std::cout << "=== FASE 2 ===\n\n";
+        caso.imprimirEstadoAtual("Tableau inicial (Fase 2)");
+    }
     return pivoteamento(caso);
 }

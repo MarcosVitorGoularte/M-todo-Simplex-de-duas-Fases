@@ -32,13 +32,13 @@ private:
     std::vector<Operador> operadores;
     std::vector<double> ladosDireitos;
     std::vector<std::string> nomesVariaveisOrdem; 
-    //Para o Tableau
     std::vector<int> baseInicial;
     bool temVariavelArtificial;
     std::vector<TipoVariavel> tiposVariaveis;
     int inicioColunasArtificiais;
     int totalColunasTableau;
     std::vector<double> tableau;
+    bool modoImpressao = false;
 public:
 
     Caso() = default;
@@ -78,6 +78,15 @@ public:
     void setTotalColunasTableau(int totalColunasTableau);
     void setTableau(const std::vector<double>& tableau);
     void setInicioColunasArtificiais(int inicioColunasArtificiais);
+
+    bool getModoImpressao() const;
+    void setModoImpressao(bool modoImpressao);
+
+    void imprimirEstadoAtual(const std::string& titulo) const;
+
+    void imprimirPivo(int linha, int coluna) const;
+
+    static std::string formatarNumerosImpressao(double valor, int casas);
 
 };
 

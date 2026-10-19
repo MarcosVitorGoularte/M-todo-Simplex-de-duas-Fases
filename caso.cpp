@@ -2,6 +2,8 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <iomanip>
+#include <sstream>
 
 
 
@@ -133,5 +135,55 @@ void Caso::setInicioColunasArtificiais(int inicioColunasArtificiais){
     this->inicioColunasArtificiais = inicioColunasArtificiais;
 }
 
+bool Caso::getModoImpressao() const {
+    return modoImpressao;
+}
+
+void Caso::setModoImpressao(bool modoImpressao){
+    this->modoImpressao = modoImpressao;
+}
+
 #pragma endregion
+
+std::string Caso::formatarNumerosImpressao(double valor, int casas){
+    std::ostringstream saida;
+    saida << std::fixed << std::setprecision(casas) << valor;
+    std::string texto = saida.str();
+    if(texto.size() > 1 && texto[0] == '-' && texto.find_first_not_of("-0.") == std::string::npos){
+        texto.erase(0, 1);
+    }
+    return texto;
+}
+
+void Caso::imprimirEstadoAtual(const std::string& titulo) const {
+    int colunas = totalColunasTableau;
+    std::ios_base::fmtflags flagsAntigas = std::cout.flags();
+
+    std::cout << "--- " << titulo << " ---\n\n";
+
+    std::cout << std::left << std::setw(6) << "BASE" << std::right;
+    for(int j = 0; j < colunas - 1; ++j){
+        std::cout << ' ' << std::setw(10) << nomesVariaveisOrdem[j];
+    }
+    std::cout << ' ' << std::setw(10) << "RHS" << '\n';
+
+    for(int i = 0; i <= restricoes; ++i){
+        const std::string rotulo = (i < restricoes) ? nomesVariaveisOrdem[baseInicial[i]] : "Z";
+        std::cout << std::left << std::setw(6) << rotulo << std::right;
+        for(int j = 0; j < colunas; ++j){
+            std::cout << ' ' << std::setw(10) << formatarNumerosImpressao(tableau[i * colunas + j], 4);
+        }
+        std::cout << '\n';
+    }
+    std::cout << '\n';
+
+    std::cout.flags(flagsAntigas);
+}
+
+void Caso::imprimirPivo(int linha, int coluna) const {
+    std::cout << "Entra: " << nomesVariaveisOrdem[coluna]
+    << " | Sai: " << nomesVariaveisOrdem[baseInicial[linha]]
+    << " | Pivo: linha " << linha + 1 << ", coluna " << nomesVariaveisOrdem[coluna]
+    << " (valor " << formatarNumerosImpressao(tableau[linha * totalColunasTableau + coluna], 4) << ")\n\n";
+}
 

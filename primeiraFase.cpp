@@ -98,9 +98,14 @@ StatusFinalPrimeiraFase PrimeiraFase::pivoteamento(Caso& caso){
         if(contadorIteracoes >= limiteIteracoes){
             std::cerr << "Limite de iteracoes da primeira fase atingido. Erro de implementacao ou ciclagem\n";
             resultadoPrimeiraFase.status = LIMITE_ITERACOES;
-            break;
+            resultadoPrimeiraFase.iteracoes = contadorIteracoes;
+            return resultadoPrimeiraFase;
         }
         
+        if(caso.getModoImpressao()){
+            caso.imprimirPivo(linhaEscolhida, colunaEscolhida);
+        }
+
         double elementoPivo = tableau[linhaEscolhida*totalColunas + colunaEscolhida];
         int i,j;
         for(j = 0; j < totalColunas; ++j){
@@ -118,10 +123,20 @@ StatusFinalPrimeiraFase PrimeiraFase::pivoteamento(Caso& caso){
         }
         baseInicial[linhaEscolhida] = colunaEscolhida;
         contadorIteracoes++;
+        if(caso.getModoImpressao()){
+            caso.imprimirEstadoAtual("Tableau apos iteracao " + std::to_string(contadorIteracoes) + " (Fase 1)");
+        }
     }
 
     int linhaZ = caso.getRestricoes();
     double valorW = -tableau[linhaZ * totalColunas + totalColunas - 1];
+    if(caso.getModoImpressao()){
+        std::cout << "Fase 1 concluida: w = " << Caso::formatarNumerosImpressao(valorW, 6);
+        if(valorW > EPS_CLASSIFICACOES){
+            std::cout << "  (w > 0: problema INVIAVEL)";
+        }
+        std::cout << "\n\n";
+    }
     if(valorW > EPS_CLASSIFICACOES){
         resultadoPrimeiraFase.status = INVIAVEL;
         resultadoPrimeiraFase.iteracoes = contadorIteracoes;
@@ -142,6 +157,13 @@ void PrimeiraFase::transicaoParaFase2(Caso& caso){
     std::vector<int> baseInicial = caso.getBaseInicial();
     std::vector<double>& tableau = caso.getTableauReferencia();
     int inicioColunaArtificiais = caso.getInicioColunasArtificiais();
+    bool modoImpressao = caso.getModoImpressao();
+    bool houveAjuste = false;
+    int removidas = 0;
+
+    if(modoImpressao){
+        std::cout << "--- Transicao Fase 1 -> Fase 2 ---\n\n";
+    }
 
     for(int i = 0; i < restricoes;){
         if(tiposVariaveis[baseInicial[i]] != ARTIFICIAL){
@@ -158,6 +180,13 @@ void PrimeiraFase::transicaoParaFase2(Caso& caso){
         if(colunaPivo!=-1){
             int inicioLinhaPivo = i * totalColunas;
             double elementoPivo = tableau[inicioLinhaPivo + colunaPivo];
+
+            if(modoImpressao){
+                std::cout << "Linha " << i + removidas + 1 << ": artificial " << nomesVariaveis[baseInicial[i]]
+                << " basica em zero -> pivo na coluna " << nomesVariaveis[colunaPivo]
+                << " (valor " << Caso::formatarNumerosImpressao(elementoPivo, 4) << ")\n";
+                houveAjuste = true;
+            }
 
             for(int j = 0; j < totalColunas; ++j){
                 tableau[inicioLinhaPivo + j] = tableau[inicioLinhaPivo + j] / elementoPivo;
@@ -177,12 +206,25 @@ void PrimeiraFase::transicaoParaFase2(Caso& caso){
             ++i;
         }
         else{
+            if(modoImpressao){
+                std::cout << "Linha " << i + removidas + 1 << ": artificial " << nomesVariaveis[baseInicial[i]]
+                << " basica em zero e linha nula fora das artificiais -> restricao redundante, linha removida\n";
+                houveAjuste = true;
+            }
             auto inicioLinha = tableau.begin() + i*totalColunas;
             tableau.erase(inicioLinha, inicioLinha + totalColunas);
             baseInicial.erase(baseInicial.begin() + i);
             --restricoes;
+            ++removidas;
         }
     }
+    if(modoImpressao){
+        if(!houveAjuste){
+            std::cout << "Nenhuma variavel artificial permaneceu na base.\n";
+        }
+        std::cout << "Colunas artificiais descartadas.\n\n";
+    }
+
     int novasColunas = inicioColunaArtificiais + 1;
     std::vector<double> novoTableau((restricoes +1)*novasColunas, 0.0);
     for(int i = 0;i<restricoes+1;++i){
@@ -194,6 +236,7 @@ void PrimeiraFase::transicaoParaFase2(Caso& caso){
     tiposVariaveis.resize(inicioColunaArtificiais);
     nomesVariaveis.resize(inicioColunaArtificiais);
     
+    caso.setTableau(novoTableau);
     caso.setRestricoes(restricoes);
     caso.setBaseInicial(baseInicial);
     caso.setTiposVariaveis(tiposVariaveis);
@@ -206,13 +249,19 @@ StatusFinalPrimeiraFase PrimeiraFase::executarPrimeiraFase(Caso &caso){
     StatusFinalPrimeiraFase resultadoPrimeiraFase;
     bool temVariavelArtificial = caso.getTemVariavelArtificial();
     if (!temVariavelArtificial){
-        std::cerr << "Base Inicial sem variaveis artificiais\n";
+        if(caso.getModoImpressao()){
+            std::cout << "=== FASE 1 ===\n\nFase 1 dispensada: nenhuma variavel artificial (0 iteracoes)\n\n";
+        }
         resultadoPrimeiraFase.iteracoes = 0;
         resultadoPrimeiraFase.status = SEM_ARTIFICIAL;
         return resultadoPrimeiraFase;
     }
 
     montarLinhaZFase1(caso);
+    if(caso.getModoImpressao()){
+        std::cout << "=== FASE 1 ===\n\n";
+        caso.imprimirEstadoAtual("Tableau inicial (Fase 1)");
+    }
     resultadoPrimeiraFase = pivoteamento(caso);
 
     if(resultadoPrimeiraFase.status != OTIMA){

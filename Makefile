@@ -1,54 +1,77 @@
-# Makefile -- Simplex de Duas Fases (Trabalho 1)
-#
-#   make                  compila o executavel ./simplex
-#   make test             roda a bateria inteira (verificar.py)
-#   make test GRUPO=A     roda so um grupo (A..G)
-#   make grandes          gera os casos g08..g13 (gerador_grandes.py)
-#   make debug            compila com -g e sanitizers (ASan/UBSan)
-#   make clean            apaga objetos e o executavel
-#
-# A bateria (casos/, esperado/, verificar.py) precisa estar na pasta apontada por
-# BATERIA. Por padrao e a pasta atual; se ela estiver em outro lugar:
-#   make test BATERIA=../PesquisaOperacional
+CXX      := g++
+CXXFLAGS := -std=c++17 -O2 -Wall -Wextra
 
-CXX      ?= g++
-CXXFLAGS ?= -std=c++17 -O2 -Wall -Wextra
-TARGET   := simplex
-BUILD    := build
-BATERIA  ?= .
-GRUPO    ?=
+ifeq ($(OS),Windows_NT)
+    EXE    := .exe
+    PYTHON ?= python
+else
+    EXE    :=
+    PYTHON ?= python3
+endif
 
-SRCS := main.cpp modelo.cpp tableau.cpp regras.cpp fases.cpp \
-        especiais.cpp saida.cpp solver.cpp
-OBJS := $(SRCS:%.cpp=$(BUILD)/%.o)
-DEPS := $(OBJS:.o=.d)
+ifeq ($(shell echo "ok"),"ok")
+    ESTILO := cmd
+else
+    ESTILO := sh
+endif
 
-.PHONY: all test grandes debug clean
+TARGET := simplex$(EXE)
+SRCS   := $(wildcard *.cpp)
+HDRS   := $(wildcard *.hpp)
+ARGS   ?=
+GRUPO  ?=
+CASO   ?=
+
+ifeq ($(ESTILO),cmd)
+    APAGAR = if exist $(TARGET) del /Q /F $(TARGET)
+else
+    APAGAR = rm -f $(TARGET)
+endif
+
+ifneq ($(filter caso,$(MAKECMDGOALS)),)
+ifeq ($(strip $(CASO)),)
+$(error Informe o caso: make caso CASO=b01   ou   make caso CASO="b01 d03")
+endif
+endif
+
+define TEXTO_AJUDA
+Comandos:
+  make                       compila (g++ -std=c++17 -O2 -Wall -Wextra)
+  make run                   compila e roda toda a bateria de casos/ comparando com esperado/
+  make caso CASO=b01         compila e roda um caso, mostrando a saida do programa
+  make caso CASO="b01 d03"   idem, para varios casos
+  make grandes               gera os casos g08..g13 (gerador_grandes.py)
+  make clean                 apaga o executavel
+
+Variaveis opcionais (valem para run e caso):
+  ARGS=-t                    passo a passo. Nao escreva make run -t: o make le -t como --touch
+  ARGS="-t --ate 200"        com -t, run pula casos com n+m > 100; --ate N muda o limite
+  GRUPO=A                    run apenas do grupo A (A a G)
+  ARGS=--verboso             mostra gabarito e saida lado a lado nas falhas
+  PYTHON=py                  interpretador Python (padrao: python no Windows, python3 no Linux)
+endef
+
+.PHONY: all run caso grandes clean ajuda help mostrar_ajuda
 
 all: $(TARGET)
 
-# Ligacao: junta todos os .o no executavel.
-$(TARGET): $(OBJS)
-	$(CXX) $(CXXFLAGS) -o $@ $(OBJS)
+$(TARGET): $(SRCS) $(HDRS)
+	$(CXX) $(CXXFLAGS) -o $(TARGET) $(SRCS)
 
-# Compilacao: cada .cpp vira um .o. -MMD -MP gera os .d com as dependencias de
-# cabecalhos, entao mexer num .hpp recompila so quem o inclui.
-$(BUILD)/%.o: %.cpp | $(BUILD)
-	$(CXX) $(CXXFLAGS) -MMD -MP -c $< -o $@
+run: $(TARGET)
+	$(PYTHON) rodar_testes.py $(TARGET) $(if $(GRUPO),--grupo $(GRUPO),) $(ARGS)
 
-$(BUILD):
-	mkdir -p $(BUILD)
-
--include $(DEPS)
-
-test: $(TARGET)
-	cd $(BATERIA) && python3 verificar.py $(abspath $(TARGET)) $(if $(GRUPO),--grupo $(GRUPO),)
+caso: $(TARGET)
+	$(PYTHON) rodar_testes.py $(TARGET) --saida --verboso --caso $(CASO) $(ARGS)
 
 grandes:
-	cd $(BATERIA) && python3 gerador_grandes.py
-
-debug: CXXFLAGS = -std=c++17 -O0 -g -Wall -Wextra -fsanitize=address,undefined
-debug: clean $(TARGET)
+	$(PYTHON) gerador_grandes.py
 
 clean:
-	rm -rf $(BUILD) $(TARGET)
+	$(APAGAR)
+
+ajuda help:
+	@$(MAKE) --no-print-directory -s mostrar_ajuda
+
+mostrar_ajuda:
+	$(info $(TEXTO_AJUDA))

@@ -35,14 +35,7 @@ void PreProcessamento::criarVariaveisAuxiliares(Caso& caso){
 
     std::vector<int> variaveisFolgaExcesso(restricoes, -1);
     std::vector<int> variaveisArtificiais(restricoes, -1);
-    //A pos i do vetor indica a restricao atual e o valor que ela recebe
-    //indica quantas colunas devemos andar quando estivermos montando
-    //a matriz com as variaveis auxiliares
     
-    //nomesVariaveisOrdem ja tem as variaveis x1 ate xn (Lidas no leitor)
-    //Quando pegamos o seu tamanho, sabemos qual o indice da proxima coluna
-
-
     for(int i = 0; i < restricoes; ++i){
         if(operadores[i] == MENOR_IGUAL){
             variaveisFolgaExcesso[i] = int(nomesVariaveisOrdem.size());
